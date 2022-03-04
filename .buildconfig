@@ -1,0 +1,11 @@
+[default]
+name=Default
+runtime=podman:5ce0d09c0e491e92f57c1eb816b531b48cbecd8623ba0a598900df3233aa6000
+toolchain=default
+config-opts=
+run-opts=
+prefix=/var/home/powpingdone/.var/app/org.gnome.Builder/cache/gnome-builder/install/subsonic-cli/podman-5ce0d09c0e491e92f57c1eb816b531b48cbecd8623ba0a598900df3233aa6000
+app-id=
+postbuild=
+prebuild=
+default=true
