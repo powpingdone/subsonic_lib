@@ -14,31 +14,6 @@ pub struct SubsonicClient {
     ver_bugfix: u32,
 }
 
-#[derive(Debug)]
-pub enum Error {
-    SerdeErr(serde_xml_rs::Error),
-    RequestErr(reqwest::Error),
-    ParseErr,
-}
-
-impl From<reqwest::Error> for Error {
-    fn from(err: reqwest::Error) -> Self {
-        Self::RequestErr(err)
-    }
-}
-
-impl From<serde_xml_rs::Error> for Error {
-    fn from(err: serde_xml_rs::Error) -> Self {
-        Self::SerdeErr(err)
-    }
-}
-
-impl From<std::num::ParseIntError> for Error {
-    fn from(_: std::num::ParseIntError) -> Self {
-        Self::ParseErr
-    }
-}
-
 macro_rules! server_req {
     ($context:expr, $major:expr, $minor:expr, $bugfix:expr) => {{
         $context.ver_major >= $major
@@ -50,17 +25,16 @@ macro_rules! server_req {
     }};
 }
 
+pub(crate) use server_req;
+
 impl SubsonicClient {
-    pub fn new(username: String, password: String, url: String) -> Result<Self, Error> {
-        let version: serde_types::SubsonicPing = serde_xml_rs::from_str(
+    pub fn new(username: String, password: String, url: String) -> anyhow::Result<Self> {
+        let raw: serde_types::SubsonicPing = serde_xml_rs::from_str(
             reqwest::blocking::get(format!("{}/rest/ping", url))?
                 .text()?
                 .as_str(),
         )?;
-        let version: Vec<&str> = version.version.split(".").collect();
-        if version.len() != 3 {
-            return Err(Error::ParseErr);
-        }
+        let version: Vec<&str> = raw.version.split(".").collect();
         let ver_major = version[0].parse::<u32>()?;
         let ver_minor = version[1].parse::<u32>()?;
         let ver_bugfix = version[2].parse::<u32>()?;
@@ -79,9 +53,9 @@ impl SubsonicClient {
 
     fn salt_pass(&self) -> (String, String) {
         let mut md5 = Md5::new();
-        // make salt from generating 6 random numbers and translating to hex
+        // make salt from generating 10 random numbers and translating to hex
         let salt: String = std::iter::repeat_with(|| fastrand::u8(..=15))
-            .take(6)
+            .take(10)
             .fold("".to_string(), |accum, x| accum + &format!("{:x?}", x));
 
         // hash the password and salt
@@ -100,14 +74,21 @@ impl SubsonicClient {
 
     pub fn make_url(&self) -> (String, String) {
         (
+            // base url
             self.url.clone() + "/rest/",
+            // base url parameters
             format!(
+                // username, version, format
                 "?u={}&v={}.{}.{}&f=xml&",
                 self.username, self.ver_major, self.ver_minor, self.ver_bugfix
-            ) + &(if server_req!(self, 1, 13) {
+            )
+            // password
+            + &(if server_req!(self, 1, 13) {
+                // salted password
                 let pair = self.salt_pass();
                 format!("t={}&s={}", pair.0, pair.1)
             } else {
+                // hex encoded password
                 format!(
                     "p=enc:{}",
                     self.password
