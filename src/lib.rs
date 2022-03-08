@@ -1,7 +1,7 @@
 use md5::{Digest, Md5};
 use reqwest::{Client, ClientBuilder};
 
-mod serde_types;
+mod deserialize;
 
 #[derive(Debug)]
 pub struct SubsonicClient {
@@ -29,7 +29,7 @@ pub(crate) use server_req;
 
 impl SubsonicClient {
     pub fn new(username: String, password: String, url: String) -> anyhow::Result<Self> {
-        let raw: serde_types::SubsonicPing = serde_xml_rs::from_str(
+        let raw: deserialize::SubsonicResp = serde_xml_rs::from_str(
             reqwest::blocking::get(format!("{}/rest/ping", url))?
                 .text()?
                 .as_str(),
@@ -71,6 +71,8 @@ impl SubsonicClient {
             salt,
         )
     }
+
+    async fn make_req(&self, url: String) {}
 
     pub fn make_url(&self) -> (String, String) {
         (
