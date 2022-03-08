@@ -6,17 +6,45 @@ pub struct SubsonicResp {
     pub status: String,
     pub version: String,
     #[serde(rename = "$value")]
-    pub resp: SubsonicInfo,
+    pub resp: Option<SubsonicInfo>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SubsonicInfo {
-    Error {
-        code: u32,
-        message: String,
-    },
+    #[serde(alias = "newestPodcasts")]
+    #[serde(alias = "nowPlaying")]
+    #[serde(alias = "randomSongs")]
+    #[serde(alias = "similarSongs")]
+    #[serde(alias = "similarSongs2")]
+    #[serde(alias = "songsByGenre")]
+    #[serde(alias = "topSongs")]
+    #[serde(alias = "videos")]
+    MediaList(Vec<Media>),
+
+    #[serde(alias = "searchResult2")]
+    #[serde(alias = "searchResult3")]
+    #[serde(alias = "starred")]
+    #[serde(alias = "starred2")]
+    GenericList(Option<Vec<SubsonicInfo>>),
+
     Album(Album),
+    #[serde(alias = "albumList2")]
+    AlbumList(Vec<Album>),
+    Artist(Artist),
+    Bookmarks(Vec<Bookmark>),
+    ChatMessages(Vec<ChatMessage>),
+    Genres(Vec<Genre>),
+    InternetRadioStations(Vec<Radio>),
+    MusicFolders(Vec<MusicFolder>),
+    Playlist(Playlist),
+    Playlists(Vec<Playlist>),
+    Podcasts(Vec<Channel>),
+    Shares(Vec<Share>),
+    Song(Media),
+    User(User),
+    Users(Vec<User>),
+
     AlbumInfo {
         notes: Option<String>,
         music_brainz_id: Option<String>,
@@ -25,9 +53,6 @@ pub enum SubsonicInfo {
         medium_image_url: Option<String>,
         large_image_url: Option<String>,
     },
-    #[serde(alias = "albumList2")]
-    AlbumList(Vec<Album>),
-    Artist(Artist),
     #[serde(alias = "artistInfo2")]
     ArtistInfo {
         music_brainz_id: Option<String>,
@@ -37,16 +62,14 @@ pub enum SubsonicInfo {
         large_image_url: Option<String>,
         biography: Option<String>,
         // this is implimented for the "similarArtists" at the end
-        // #[serde(rename = "similarArtists")]
-        // similar_artists: Option<Vec<SubsonicArtist>>,
+        #[serde(rename = "similarArtists")]
+        similar_artists: Option<Vec<Artist>>,
     },
     Artists{
         ignored_articles: Option<String>,
         #[serde(rename = "$value")]
         indexes: Vec<Index>
     },
-    Bookmarks(Vec<Bookmark>),
-    ChatMessages(Vec<ChatMessage>),
     Directory {
         id: u64,
         parent: u64,
@@ -55,14 +78,16 @@ pub enum SubsonicInfo {
         #[serde(rename = "$value")]
         children: Vec<Media>
     },
-    Genres(Vec<Genre>),
+    Error {
+        code: u32,
+        message: String,
+    },
     Indexes {
         last_modified: u64,
         ignored_articles: Option<String>,
         #[serde(rename = "$value")]
         list: Vec<Indexes>
     },
-    InternetRadioStations(Vec<Radio>),
     JukeboxPlaylist{
         current_index: u64,
         playing: bool,
@@ -88,23 +113,33 @@ pub enum SubsonicInfo {
         #[serde(rename = "$value")]
         lyrics: String,
     },
-    MusicFolders(Vec<MusicFolder>),
-    NewestPodcasts(Vec<Media>),
-    NowPlaying(Vec<Media>),
-    Playlist {
-        duration: u64,
-        id: u64,
-        name: String,
-        owner: String,
-        public: bool,
-        song_count: u32,
+    PlayQueue {
+        current: u64,
+        position: u64,
+        username: String,
 
-        comment: Option<String>,
-        cover_art: Option<String>,
-        created: Option<String>,
+        changed: Option<String>,
+        changed_by: Option<String>,
         #[serde(rename = "$value")]
-        entries: Vec<Entrires>,
+        entries: Option<Vec<Media>>,
     },
+    ScanStatus {
+        scanning: bool,
+
+        count: Option<u32>,
+    },
+    SearchResult {
+        offset: Option<u32>,
+        total: Option<u32>,
+        #[serde(rename = "$value")]
+        results: Option<Vec<Media>>,
+    },
+    VideoInfo {
+        id: u64,
+        #[serde(rename = "$value")]
+        properties: Option<Vec<VideoProperties>>,
+    },
+
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -123,6 +158,24 @@ pub enum Indexes {
     },
     Index(Index),
     Child(Media),
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum VideoProperties {
+    AudioTrack {
+        id: u64,
+        name: String,
+        language_code: String,
+    },
+    Captions {
+        id: u64,
+        name: String,
+    },
+    Conversion {
+        id: u64,
+        bitrate: u32,
+    }
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -163,6 +216,22 @@ pub struct Bookmark {
     pub changed: Option<String>,
     #[serde(rename = "$value")]
     pub entries: Vec<Media>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Channel {
+    pub id: u64,
+    pub status: String,
+    pub url: String,
+
+    pub cover_art: Option<String>,
+    pub description: Option<String>,
+    pub error_message: Option<String>,
+    pub original_image_url: Option<String>,
+    pub title: Option<String>,
+    #[serde(rename = "$value")]
+    pub episodes: Option<Vec<Media>>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -225,6 +294,7 @@ pub struct Media {
     pub transcoded_suffix: Option<String>,
     pub r#type: Option<String>,
     pub username: Option<String>,
+    pub year: Option<u32>,
 }
 
 #[derive(Debug, PartialEq, Deserialize)]
@@ -236,11 +306,65 @@ pub struct MusicFolder {
 
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Playlist {
+       pub id: u64,
+      pub  name: String,
+       pub owner: String,
+      pub  public: bool,
+    pub    song_count: u32,
+
+pub        comment: Option<String>,
+  pub      cover_art: Option<String>,
+    pub created: Option<String>,
+    #[serde(rename = "$value")]
+    pub entries: Option<Vec<Entrires>>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Radio {
     pub id: u64,
     pub name: String,
     pub stream_url: String,
     pub home_page_url: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Share {
+    pub created: String,
+    pub id: u64,
+    pub url: String,
+    pub username: String,
+    pub visit_count: u32,
+
+    pub description: Option<String>,
+    pub last_visited: Option<String>,
+    pub expires: Option<String>,
+    #[serde(rename = "$value")]
+    pub entries: Option<Vec<Media>>,
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct User {
+    pub admin_role: bool,
+    pub comment_role: bool,
+    pub cover_art_role:  bool,
+    pub download_role: bool,
+    pub jukebox_role:bool,
+    pub playlist_role: bool,
+    pub podcast_role: bool,
+    pub scrobbling_enabled: bool,
+    pub settings_role: bool,
+    pub share_role: bool,
+    pub stream_role: bool,
+    pub upload_role: bool,
+    pub username: String,
+
+    pub email: Option<String>,
+    #[serde(rename = "$value")]
+    pub folders: Option<Vec<u32>>,
 }
 
 // download all examples: wget http://www.subsonic.org/pages/api.jsp -r -A .xml
