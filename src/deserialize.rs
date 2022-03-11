@@ -412,7 +412,7 @@ mod test {
 
     #[test]
     fn deser_tests() {
-        // download all examples: wget http://www.subsonic.org/pages/api.jsp -r -A .xml
+        // download all examples: tests/download.sh
         // when running this, make sure to use -- --nocapture
         let files = read_dir(&*(current_dir().unwrap().to_string_lossy() + "/test"))
             .unwrap()
@@ -424,13 +424,15 @@ mod test {
                 })
             });
         for file in files {
-            println!("deserializing {}...", file);
-            println!("---------------------------------------------------------------------");
-            let mut out = "".to_string();
-            let mut inp = File::open("./test/".to_string() + &file).unwrap();
-            inp.read_to_string(&mut out).unwrap();
-            println!("{:#?}", des!(&out));
-            println!("---------------------------------------------------------------------\n");
+            if &file[file.len() - 4..file.len()] == ".xml" {
+                println!("deserializing {}...", file);
+                println!("---------------------------------------------------------------------");
+                let mut out = "".to_string();
+                let mut inp = File::open("./test/".to_string() + &file).unwrap();
+                inp.read_to_string(&mut out).unwrap();
+                println!("{:#?}", des!(&out));
+                println!("---------------------------------------------------------------------\n");
+            }
         }
     }
 }
