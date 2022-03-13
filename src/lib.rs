@@ -1,7 +1,17 @@
 use md5::{Digest, Md5};
 use reqwest::{Client, ClientBuilder};
+use thiserror::Error;
 
-mod deserialize;
+pub mod deserialize;
+pub mod restapi;
+
+use deserialize::SubsonicResp;
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("the server is not new enough to use this api, server is {0}.{1}.{2} while api requested is {3}.{4}.{5}")]
+    APIVersionMismatch(u32, u32, u32, u32, u32, u32),
+}
 
 #[derive(Debug)]
 pub struct SubsonicClient {
@@ -29,7 +39,7 @@ pub(crate) use server_req;
 
 impl SubsonicClient {
     pub fn new(username: String, password: String, url: String) -> anyhow::Result<Self> {
-        let raw: deserialize::SubsonicResp = serde_xml_rs::from_str(
+        let raw: SubsonicResp = serde_xml_rs::from_str(
             reqwest::blocking::get(format!("{}/rest/ping", url))?
                 .text()?
                 .as_str(),
@@ -72,7 +82,11 @@ impl SubsonicClient {
         )
     }
 
-    async fn make_req(&self, url: String) {}
+    async fn make_req(&self, url: String) -> anyhow::Result<SubsonicResp> {
+        Ok(serde_xml_rs::from_str(
+            &self.client.get(url).send().await?.text().await?,
+        )?)
+    }
 
     pub fn make_url(&self) -> (String, String) {
         (
