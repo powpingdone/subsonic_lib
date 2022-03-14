@@ -11,6 +11,8 @@ use deserialize::SubsonicResp;
 pub enum Error {
     #[error("the server is not new enough to use this api, server is {0}.{1}.{2} while api requested is {3}.{4}.{5}")]
     APIVersionMismatch(u32, u32, u32, u32, u32, u32),
+    #[error("the server is not new enough to use this arg, server is {0}.{1}.{2} while arg required is {3}.{4}.{5}")]
+    ArgsVersionMismatch(u32, u32, u32, u32, u32, u32),
 }
 
 #[derive(Debug)]

@@ -110,7 +110,7 @@ pub enum Entrires {
 pub enum IndexChoice {
     #[serde(rename_all = "camelCase")]
     Shortcut {
-        id: u64,
+        id: String,
         name: String,
     },
     Index(Index),
@@ -122,20 +122,20 @@ pub enum IndexChoice {
 pub enum VideoProperties {
     #[serde(rename_all = "camelCase")]
     AudioTrack {
-        id: u64,
+        id: String,
         name: String,
         language_code: String,
     },
     #[serde(rename_all = "camelCase")]
-    Captions { id: u64, name: String },
+    Captions { id: String, name: String },
     #[serde(rename_all = "camelCase")]
-    Conversion { id: u64, bit_rate: u32 },
+    Conversion { id: String, bit_rate: u32 },
 }
 
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Album {
-    pub id: u64,
+    pub id: String,
     #[serde(alias = "name")]
     pub title: String,
 
@@ -145,7 +145,7 @@ pub struct Album {
     pub cover_art: Option<String>,
     pub created: Option<String>,
     pub duration: Option<u64>,
-    pub parent: Option<u64>,
+    pub parent: Option<String>,
     pub song_count: Option<u32>,
     pub user_rating: Option<String>,
     #[serde(rename = "$value")]
@@ -155,7 +155,7 @@ pub struct Album {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Artist {
-    pub id: u64,
+    pub id: String,
     pub name: String,
     pub album_count: Option<u32>,
     pub cover_art: Option<String>,
@@ -185,7 +185,7 @@ pub struct Bookmark {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Channel {
-    pub id: u64,
+    pub id: String,
     pub status: String,
     pub url: String,
 
@@ -209,10 +209,10 @@ pub struct ChatMessage {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Directory {
-    id: u64,
-    parent: u64,
+    id: String,
     name: String,
     starred: Option<String>,
+    parent: Option<String>,
     #[serde(rename = "$value")]
     children: Option<Vec<Media>>,
 }
@@ -264,9 +264,8 @@ pub struct JukeboxPlaylist {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Media {
-    pub id: u64,
+    pub id: String,
     pub is_dir: bool,
-    pub parent: u64,
     #[serde(alias = "name")]
     pub title: String,
 
@@ -284,6 +283,7 @@ pub struct Media {
     pub genre: Option<String>,
     pub is_video: Option<bool>,
     pub minutes_ago: Option<u32>,
+    pub parent: Option<String>,
     pub path: Option<String>,
     pub player_id: Option<u32>,
     pub player_name: Option<String>,
@@ -302,14 +302,14 @@ pub struct Media {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MusicFolder {
-    pub id: u64,
+    pub id: String,
     pub name: String,
 }
 
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Playlist {
-    pub id: u64,
+    pub id: String,
     pub name: String,
     pub owner: String,
     pub public: bool,
@@ -338,7 +338,7 @@ pub struct PlayQueue {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Radio {
-    pub id: u64,
+    pub id: String,
     pub name: String,
     pub stream_url: String,
     pub home_page_url: Option<String>,
@@ -356,7 +356,7 @@ pub struct SearchResult {
 #[serde(rename_all = "camelCase")]
 pub struct Share {
     pub created: String,
-    pub id: u64,
+    pub id: String,
     pub url: String,
     pub username: String,
     pub visit_count: u32,
@@ -392,7 +392,7 @@ pub struct User {
 #[derive(Debug, Default, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VideoInfo {
-    id: u64,
+    id: String,
     #[serde(rename = "$value")]
     properties: Option<Vec<VideoProperties>>,
 }
