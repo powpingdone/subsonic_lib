@@ -16,6 +16,21 @@ pub enum Error {
 }
 
 #[derive(Debug)]
+pub enum CaptionType {
+    STT,
+    VTT
+}
+
+impl std::fmt::Display for CaptionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match *self {
+            CaptionType::STT => "stt",
+            CaptionType::VTT => "vtt",
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct SubsonicClient {
     username: String,
     password: String,
