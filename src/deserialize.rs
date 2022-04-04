@@ -54,7 +54,7 @@ pub enum SubsonicInfo {
     #[serde(rename_all = "camelCase")]
     Error {
         code: u32,
-        message: String,
+        message: Option<String>,
     },
     #[serde(rename_all = "camelCase")]
     JukeboxStatus {
